@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyprus & Italy Grand Tour 2026</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Tailwind Config for Custom Palette -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            navy: '#0A192F',
+                            gold: '#C5A059',
+                            cream: '#FAF8F5',
+                            sand: '#F2EFE9',
+                            darkGold: '#9A7B38',
+                            terracotta: '#C85A32'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Cinzel', 'Georgia', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #FAF8F5;
+            color: #0F172A;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .font-serif-title {
+            font-family: 'Cinzel', serif;
+        }
+        .leaflet-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 1rem;
+        }
+        .chat-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background-color: #CBD5E1;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-brand-cream text-slate-900 antialiased selection:bg-brand-gold selection:text-white">
+
+    <!-- Sticky Navigation Header -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="scrollToSection('hero')">
+                <span class="text-xl sm:text-2xl font-serif-title font-bold text-brand-navy tracking-widest uppercase">GRAND TOUR</span>
+                <span class="text-[10px] sm:text-xs bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-amber-300">2026 Autumn</span>
+            </div>
+            
+            <!-- Desktop Menu Links -->
+            <nav class="hidden lg:flex space-x-6 text-xs font-bold uppercase tracking-wider text-slate-700">
+                <a href="#overview" onclick="smoothScroll(event, 'overview')" class="hover:text-brand-darkGold transition-colors">全体マップ</a>
+                <a href="#expenses" onclick="smoothScroll(event, 'expenses')" class="text-emerald-700 hover:text-brand-darkGold transition-colors flex items-center gap-1"><i class="fa-solid fa-calculator text-emerald-600"></i> 費用・内訳</a>
+                <a href="#ai-concierge" onclick="smoothScroll(event, 'ai-concierge')" class="text-amber-700 hover:text-brand-darkGold transition-colors flex items-center gap-1.5"><i class="fa-solid fa-sparkles text-brand-gold"></i> AIガイド</a>
+                <a href="#flights" onclick="smoothScroll(event, 'flights')" class="hover:text-brand-darkGold transition-colors">フライト（5便）</a>
+                <a href="#hotels" onclick="smoothScroll(event, 'hotels')" class="hover:text-brand-darkGold transition-colors">宿泊場所（4地域）</a>
+                <a href="#transport" onclick="smoothScroll(event, 'transport')" class="hover:text-brand-darkGold transition-colors">現地移動</a>
+                <a href="#spots" onclick="smoothScroll(event, 'spots')" class="hover:text-brand-darkGold transition-colors">観光スポット</a>
+            </nav>
+
+            <!-- Desktop Data Controls & CTA -->
+            <div class="hidden sm:flex items-center space-x-2">
+                <button onclick="exportDataJson()" class="inline-flex items-center px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all border border-slate-300" title="現在の旅行計画データをファイル保存">
+                    <i class="fa-solid fa-download mr-1.5 text-brand-navy"></i> 保存
+                </button>
+                <button onclick="document.getElementById('importJsonFile').click()" class="inline-flex items-center px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all border border-slate-300" title="保存したデータを読み込み">
+                    <i class="fa-solid fa-upload mr-1.5 text-brand-navy"></i> 復元
+                </button>
+                <input type="file" id="importJsonFile" class="hidden" accept=".json" onchange="importDataJson(event)">
+                <a href="#checklist" onclick="smoothScroll(event, 'checklist')" class="inline-flex items-center px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-brand-navy hover:bg-brand-darkGold transition-all duration-300 rounded-xl shadow-md">
+                    <i class="fa-solid fa-list-check mr-2 text-brand-gold"></i> 手配チェックリスト
+                </a>
+            </div>
+
+            <!-- Mobile Hamburger Button -->
+            <button id="menuBtn" onclick="toggleMobileMenu()" class="lg:hidden p-2 text-brand-navy hover:text-brand-darkGold focus:outline-none" aria-label="Menu">
+                <i class="fa-solid fa-bars text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Drawer Overlay Menu -->
+        <div id="mobileMenu" class="hidden lg:hidden bg-white border-b border-slate-200 px-6 py-4 shadow-xl space-y-3">
+            <a href="#overview" onclick="smoothScroll(event, 'overview'); toggleMobileMenu();" class="block text-sm font-bold text-slate-800 hover:text-brand-darkGold py-1.5 border-b border-slate-100">全体マップ</a>
+            <a href="#expenses" onclick="smoothScroll(event, 'expenses'); toggleMobileMenu();" class="block text-sm font-bold text-emerald-800 hover:text-brand-darkGold py-1.5 border-b border-slate-100"><i class="fa-solid fa-calculator mr-2 text-emerald-600"></i> 旅行費用・内訳</a>
+            <a href="#ai-concierge" onclick="smoothScroll(event, 'ai-concierge'); toggleMobileMenu();" class="block text-sm font-bold text-amber-800 hover:text-brand-darkGold py-1.5 border-b border-slate-100"><i class="fa-solid fa-sparkles mr-2 text-brand-gold"></i> AIガイド &amp; コンシェルジュ</a>
+            <a href="#flights" onclick="smoothScroll(event, 'flights'); toggleMobileMenu();" class="block text-sm font-bold text-slate-800 hover:text-brand-darkGold py-1.5 border-b border-slate-100">フライト（5便）</a>
+            <a href="#hotels" onclick="smoothScroll(event, 'hotels'); toggleMobileMenu();" class="block text-sm font-bold text-slate-800 hover:text-brand-darkGold py-1.5 border-b border-slate-100">宿泊場所（4地域）</a>
+            <a href="#transport" onclick="smoothScroll(event, 'transport'); toggleMobileMenu();" class="block text-sm font-bold text-slate-800 hover:text-brand-darkGold py-1.5 border-b border-slate-100">現地移動</a>
+            <a href="#spots" onclick="smoothScroll(event, 'spots'); toggleMobileMenu();" class="block text-sm font-bold text-slate-800 hover:text-brand-darkGold py-1.5 border-b border-slate-100">観光スポット</a>
+            <div class="flex items-center space-x-2 py-2">
+                <button onclick="exportDataJson()" class="flex-1 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-300">
+                    <i class="fa-solid fa-download mr-1"></i> データ保存
+                </button>
+                <button onclick="document.getElementById('importJsonFile').click()" class="flex-1 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-300">
+                    <i class="fa-solid fa-upload mr-1"></i> データ復元
+                </button>
+            </div>
+            <a href="#checklist" onclick="smoothScroll(event, 'checklist'); toggleMobileMenu();" class="block text-sm font-bold text-brand-navy bg-brand-sand px-4 py-2.5 rounded-xl text-center">
+                <i class="fa-solid fa-list-check mr-2 text-brand-darkGold"></i> 手配チェックリスト
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero / Cover Section -->
+    <section id="hero" class="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-brand-navy text-white py-16">
+        <div class="absolute inset-0 z-0 opacity-40">
+            <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?q=80&w=2000&auto=format&fit=crop" 
+                 alt="Mediterranean Sea" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/60 to-transparent"></div>
+        </div>
+
+        <div class="relative z-10 max-w-5xl mx-auto px-4 text-center">
+            <div class="inline-block border-y border-brand-gold/60 py-2 px-8 mb-6 bg-brand-navy/40 backdrop-blur-sm">
+                <p class="text-xs sm:text-sm font-serif-title tracking-widest text-brand-gold uppercase">Exclusive Itinerary Guide</p>
+            </div>
+            
+            <h1 class="text-4xl sm:text-6xl md:text-7xl font-serif-title font-bold tracking-tight mb-6 leading-tight">
+                Cyprus <span class="font-light italic text-brand-gold">&amp;</span> Italy
+            </h1>
+            
+            <p class="text-sm sm:text-lg font-light max-w-2xl mx-auto mb-10 text-slate-200 leading-relaxed">
+                地中海の神秘キプロス島から、情熱の南イタリア・アマルフィ海岸、そして静謐なる北イタリア・マッジョーレ湖を巡るグランドツアー。
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-left">
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-lg">
+                    <p class="text-[10px] text-brand-gold uppercase tracking-wider font-bold">旅行日程</p>
+                    <p class="text-sm sm:text-base font-bold mt-1 text-white">2026年9月4日 〜 9月18日</p>
+                    <p class="text-xs text-slate-300 mt-0.5">15日間の欧州周遊</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-lg">
+                    <p class="text-[10px] text-brand-gold uppercase tracking-wider font-bold">旅行者</p>
+                    <p class="text-xs sm:text-sm font-bold mt-1 text-white">1. Kourtis, Savvas Yuei</p>
+                    <p class="text-xs sm:text-sm font-bold text-white">2. Harima, Anju</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-lg">
+                    <p class="text-[10px] text-brand-gold uppercase tracking-wider font-bold">訪問地域</p>
+                    <p class="text-sm sm:text-base font-bold mt-1 text-white">キプロス &amp; イタリア</p>
+                    <p class="text-xs text-slate-300 mt-0.5">ラルナカ / ナポリ / ミラノ</p>
+                </div>
+            </div>
+
+            <div class="mt-10 flex flex-wrap justify-center gap-4">
+                <a href="#expenses" onclick="smoothScroll(event, 'expenses')" class="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl transition-colors text-xs uppercase tracking-widest shadow-lg">
+                    <i class="fa-solid fa-coins"></i>
+                    <span>費用内訳・総額を見る</span>
+                </a>
+                <a href="#overview" onclick="smoothScroll(event, 'overview')" class="inline-flex items-center space-x-2 border border-brand-gold text-brand-gold hover:bg-brand-gold/20 font-bold px-6 py-3 rounded-xl transition-colors text-xs uppercase tracking-widest">
+                    <span>全体ルート・地図を見る</span>
+                    <i class="fa-solid fa-arrow-down ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview & Interactive Leaflet Map Section -->
+    <section id="overview" class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-10">
+            <span class="text-xs font-bold text-brand-darkGold uppercase tracking-widest">Interactive Flight Route &amp; Sightseeing Map</span>
+            <h2 class="text-2xl sm:text-4xl font-serif-title font-bold text-brand-navy mt-1">移動ルート &amp; インタラクティブ地図</h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-2">飛行機の移動パス、宿泊ホテル（赤のホテルピン）、レンタカー店舗（紫の車ピン）、立ち寄りスポットを確認できます。ピンをクリックすると詳細情報とGoogle Mapsリンクが開きます。</p>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-2 mb-6">
+            <button onclick="focusMap('world')" class="map-btn active-map-btn bg-brand-navy text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-all">
+                <i class="fa-solid fa-globe mr-1.5"></i> 全体フライトルート
+            </button>
+            <button onclick="focusMap('cyprus')" class="map-btn bg-white text-brand-navy border border-slate-300 hover:border-brand-gold px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-all">
+                <i class="fa-solid fa-umbrella-beach mr-1.5"></i> キプロス島エリア
+            </button>
+            <button onclick="focusMap('naples')" class="map-btn bg-white text-brand-navy border border-slate-300 hover:border-brand-gold px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-all">
+                <i class="fa-solid fa-volcano mr-1.5"></i> ナポリ・ソレント・アマルフィ
+            </button>
+            <button onclick="focusMap('maggiore')" class="map-btn bg-white text-brand-navy border border-slate-300 hover:border-brand-gold px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-all">
+                <i class="fa-solid fa-water mr-1.5"></i> 北イタリア・マッジョーレ湖
+            </button>
+        </div>
+
+        <div class="bg-white p-3 rounded-2xl shadow-xl border border-slate-200">
+            <div id="map" class="w-full h-[500px] rounded-xl z-10"></div>
+        </div>
+    </section>
+
+    <!-- Trip Expense Summary & Breakdown Section -->
+    <section id="expenses" class="py-16 bg-slate-900 text-white border-y border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <div class="inline-flex items-center space-x-2 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-3">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>Financial Overview &amp; Budget Tracking</span>
+                </div>
+                <h2 class="text-2xl sm:text-4xl font-serif-title font-bold text-white">旅行費用・内訳＆総額サマリー</h2>
+                <p class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+                    フライト、ホテル宿泊、レンタカーなど、これまでに確定している費用と未手配項目の全体内訳です。カードの「✏️ 編集」画面で金額を修正すると、ここへ即座に反映・自動再計算されます。
+                </p>
+            </div>
+
+            <!-- Key Financial Stats Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                <!-- Total Confirmed Expense Card -->
+                <div class="bg-gradient-to-br from-emerald-900/80 to-slate-800 border border-emerald-500/50 p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                    <div class="absolute top-3 right-3 text-emerald-400/20 text-5xl font-black"><i class="fa-solid fa-vault"></i></div>
+                    <p class="text-xs font-bold uppercase tracking-wider text-emerald-400">現在確定済みの旅行総額</p>
+                    <p class="text-3xl sm:text-4xl font-extrabold text-white mt-2 font-serif-title" id="summaryTotalConfirmed">¥540,404</p>
+                    <p class="text-[11px] text-slate-300 mt-2 flex items-center"><i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> 手配確定済（9項目）</p>
+                </div>
+
+                <!-- Flight Subtotal Card -->
+                <div class="bg-slate-800/90 border border-slate-700 p-5 rounded-2xl shadow-lg">
+                    <div class="flex justify-between items-center text-slate-400 text-xs font-bold uppercase tracking-wider">
+                        <span>フライト費用 (全5便中 4便確定)</span>
+                        <i class="fa-solid fa-plane text-brand-gold"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-white mt-2" id="summaryFlightTotal">¥386,732</p>
+                    <p class="text-[11px] text-slate-400 mt-1">1便（Harima様帰国便）手配中</p>
+                </div>
+
+                <!-- Hotel Subtotal Card -->
+                <div class="bg-slate-800/90 border border-slate-700 p-5 rounded-2xl shadow-lg">
+                    <div class="flex justify-between items-center text-slate-400 text-xs font-bold uppercase tracking-wider">
+                        <span>宿泊費用 (全4地域 確定)</span>
+                        <i class="fa-solid fa-hotel text-rose-400"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-white mt-2" id="summaryHotelTotal">¥132,931</p>
+                    <p class="text-[11px] text-slate-400 mt-1">10泊分（€200 ＝ 約¥34,000換算込）</p>
+                </div>
+
+                <!-- Transport Subtotal Card -->
+                <div class="bg-slate-800/90 border border-slate-700 p-5 rounded-2xl shadow-lg">
+                    <div class="flex justify-between items-center text-slate-400 text-xs font-bold uppercase tracking-wider">
+                        <span>現地移動 (レンタカー等)</span>
+                        <i class="fa-solid fa-car text-indigo-400"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-white mt-2" id="summaryTransportTotal">¥20,741</p>
+                    <p class="text-[11px] text-slate-400 mt-1">フェリー・列車代金 未確定</p>
+                </div>
+            </div>
+
+            <!-- Expense Category Share Progress Bar -->
+            <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl mb-10">
+                <div class="flex justify-between items-center mb-3 text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <span>支出カテゴリーの構成比率</span>
+                    <span id="ratioText">フライト 71.6% | 宿泊 24.6% | 移動 3.8%</span>
+                </div>
+                <div class="w-full bg-slate-900 h-4 rounded-full overflow-hidden flex shadow-inner">
+                    <div id="barFlight" class="bg-brand-gold h-full transition-all duration-500" style="width: 71.6%" title="フライト"></div>
+                    <div id="barHotel" class="bg-rose-500 h-full transition-all duration-500" style="width: 24.6%" title="宿泊"></div>
+                    <div id="barTransport" class="bg-indigo-500 h-full transition-all duration-500" style="width: 3.8%" title="現地移動"></div>
+                </div>
+                <div class="flex flex-wrap gap-4 mt-3 text-xs text-slate-300 font-medium">
+                    <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-brand-gold mr-1.5"></span> フライト (¥386,732)</span>
+                    <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-rose-500 mr-1.5"></span> 宿泊ホテル (¥132,931)</span>
+                    <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-indigo-500 mr-1.5"></span> 現地移動・レンタカー (¥20,741)</span>
+                </div>
+            </div>
+
+            <!-- Detailed Breakdown List Table -->
+            <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl overflow-x-auto">
+                <h3 class="text-base font-serif-title font-bold text-white mb-4 flex items-center">
+                    <i class="fa-solid fa-list-numeric text-brand-gold mr-2"></i> 項目別 費用明細一覧
+                </h3>
+                <table class="w-full text-left text-xs sm:text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-700 text-slate-400 font-bold uppercase text-[11px]">
+                            <th class="pb-3">カテゴリー</th>
+                            <th class="pb-3">項目・内容</th>
+                            <th class="pb-3">ステータス</th>
+                            <th class="pb-3 text-right">費用・金額</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/60 text-slate-200" id="expenseTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- AI Travel Concierge & Features Section -->
+    <section id="ai-concierge" class="py-16 bg-slate-900 text-white relative overflow-hidden border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <div class="inline-flex items-center space-x-2 bg-brand-gold/20 border border-brand-gold/40 text-brand-gold px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-3">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Gemini AI Intelligent Travel Suite</span>
+                </div>
+                <h2 class="text-2xl sm:text-4xl font-serif-title font-bold text-white">AI 旅のコンシェルジュ &amp; ガイド</h2>
+                <p class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+                    Gemini APIを活用した旅行支援アシスタント。リアルタイム検索（Google Search Grounding）による穴場探索やQ&amp;A、AI音声ガイダンスをご利用いただけます。
+                </p>
+            </div>
+
+            <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 sm:p-6 shadow-2xl backdrop-blur-md">
+                
+                <div class="flex flex-wrap border-b border-slate-700 pb-4 mb-6 gap-2">
+                    <button id="tabBtnChat" onclick="switchAiTab('chat')" class="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all bg-brand-gold text-slate-900">
+                        <i class="fa-solid fa-comments"></i>
+                        <span>AI コンシェルジュ Q&amp;A</span>
+                    </button>
+                    <button id="tabBtnFinder" onclick="switchAiTab('finder')" class="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all bg-slate-700 text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-utensils"></i>
+                        <span>AI グルメ &amp; 隠れた名所提案</span>
+                    </button>
+                    <button id="tabBtnAudio" onclick="switchAiTab('audio')" class="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all bg-slate-700 text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-volume-high"></i>
+                        <span>AI 音声ガイダンス (TTS)</span>
+                    </button>
+                </div>
+
+                <div id="aiTabChat" class="space-y-4">
+                    <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-4 h-[320px] overflow-y-auto chat-scroll space-y-3" id="chatContainer">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-brand-gold text-slate-900 flex items-center justify-center font-bold text-xs shrink-0">
+                                AI
+                            </div>
+                            <div class="bg-slate-800 text-slate-200 text-xs sm:text-sm p-3.5 rounded-2xl rounded-tl-none border border-slate-700 max-w-2xl leading-relaxed">
+                                こんにちは！キプロス（リマソル、アヤナパ、トロドス）とイタリア（ナポリ、アマルフィ、マッジョーレ湖）の旅に関するご質問にお答えします。現地のおすすめ料理、気候や服装、持ち物、文化・マナーなど何でも気軽にお尋ねください。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 pt-2">
+                        <span class="text-[10px] text-slate-400 font-bold self-center mr-1">おすすめ質問:</span>
+                        <button type="button" onclick="sendQuickPrompt('リマソルでおすすめの伝統的な地中海シーフード料理とレストランを教えてください。')" class="text-[11px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-full border border-slate-600 transition-colors">
+                            🍴 リマソルのおすすめグルメ
+                        </button>
+                        <button type="button" onclick="sendQuickPrompt('9月上旬のキプロスとイタリア（ナポリ・マッジョーレ湖）の気候、服装、持ち物のアドバイスを教えてください。')" class="text-[11px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-full border border-slate-600 transition-colors">
+                            ☀️ 9月の気候とおすすめの服装
+                        </button>
+                        <button type="button" onclick="sendQuickPrompt('アマルフィ海岸ドライブやポジターノで気をつけるべき現地交通ルールやコツは？')" class="text-[11px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-full border border-slate-600 transition-colors">
+                            🚗 南イタリアドライブのコツ
+                        </button>
+                    </div>
+
+                    <div class="flex items-center space-x-2 pt-2">
+                        <input type="text" id="chatInput" placeholder="質問を入力してください（例：ポンペイ遺跡の見学所要時間は？など）" 
+                               class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-gold"
+                               onkeydown="if(event.key === 'Enter'){ event.preventDefault(); handleChatSubmit(); }">
+                        <button type="button" onclick="handleChatSubmit()" id="chatSendBtn" class="bg-brand-gold hover:bg-brand-darkGold text-slate-900 font-bold px-5 py-3 rounded-xl text-xs sm:text-sm transition-colors flex items-center space-x-2 shrink-0">
+                            <span>送信</span>
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="aiTabFinder" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">訪問予定エリア</label>
+                            <select id="finderArea" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold">
+                                <option value="Limassol, Cyprus">キプロス・リマソル (Limassol)</option>
+                                <option value="Ayia Napa, Cyprus">キプロス・アヤナパ (Ayia Napa)</option>
+                                <option value="Troodos Mountains, Cyprus">キプロス・トロドス山脈 (Troodos)</option>
+                                <option value="Sorrento & Amalfi Coast, Italy">イタリア・ソレント＆アマルフィ海岸</option>
+                                <option value="Naples, Italy">イタリア・ナポリ市内 (Naples)</option>
+                                <option value="Lake Maggiore & Stresa, Italy">北イタリア・マッジョーレ湖 (Stresa)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">体験タイプ / テーマ</label>
+                            <select id="finderType" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold">
+                                <option value="絶景ロケーションで味わう最高峰シーフードレストラン">サンセット＆絶景シーフードレストラン</option>
+                                <option value="地元の雰囲気が楽しめる素朴で本格的なトラットリア・タベルナ">本場の隠れ家トラットリア / タベルナ</option>
+                                <option value="観光客が少ない穴場の絶景展望スポットや歴史的建造物">知る人ぞ知る穴場の絶景スポット</option>
+                                <option value="優雅なカフェや本場のジェラート・スイーツ店">本場カフェ＆ジェラテリア</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="text-right">
+                        <button type="button" onclick="generateRecommendations()" id="finderBtn" class="bg-brand-gold hover:bg-brand-darkGold text-slate-900 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider transition-all inline-flex items-center space-x-2">
+                            <i class="fa-solid fa-magnifying-glass-location"></i>
+                            <span>AIで最新スポット・お店を検索・提案</span>
+                        </button>
+                    </div>
+
+                    <div id="finderResult" class="bg-slate-900/80 border border-slate-700/80 rounded-xl p-5 text-xs sm:text-sm leading-relaxed text-slate-300 min-h-[120px] flex items-center justify-center">
+                        <p class="text-slate-500 italic">条件を選択して「検索・提案」ボタンを押してください。Google検索グラウンディングを利用したリアルタイム情報を生成します。</p>
+                    </div>
+                </div>
+
+                <div id="aiTabAudio" class="hidden space-y-6 text-center py-4">
+                    <div class="max-w-xl mx-auto space-y-4">
+                        <div class="w-16 h-16 bg-brand-gold/20 text-brand-gold rounded-full flex items-center justify-center mx-auto text-2xl border border-brand-gold/40">
+                            <i class="fa-solid fa-headphones"></i>
+                        </div>
+                        <h3 class="text-lg font-serif-title font-bold text-white">旅のハイライト 音声ガイダンス</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            `gemini-2.5-flash-preview-tts` を使用し、今回のキプロス＆イタリア15日間のグランドツアーの魅力を日本語音声で生成・再生します。
+                        </p>
+
+                        <div class="pt-4 flex justify-center space-x-4">
+                            <button type="button" onclick="generateAudioGuide()" id="audioPlayBtn" class="bg-brand-gold hover:bg-brand-darkGold text-slate-900 font-bold px-8 py-3.5 rounded-xl text-xs uppercase tracking-wider transition-all inline-flex items-center space-x-2 shadow-lg">
+                                <i class="fa-solid fa-play"></i>
+                                <span>AI 音声ガイダンスを生成・再生</span>
+                            </button>
+                        </div>
+
+                        <div id="audioStatus" class="text-xs text-brand-gold font-medium h-6"></div>
+                        <audio id="audioPlayer" controls class="hidden w-full mt-4"></audio>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Flights & Luggage Section (5 Flights Total - Dynamic Editable) -->
+    <section id="flights" class="py-16 bg-brand-sand/50 border-y border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
+                <div>
+                    <span class="text-xs font-bold text-brand-darkGold uppercase tracking-widest">Flight Schedules &amp; Baggage Specs</span>
+                    <h2 class="text-2xl sm:text-4xl font-serif-title font-bold text-brand-navy mt-1">フライトスケジュール（全5便）</h2>
+                    <p class="text-xs text-slate-500 mt-1">「✏️ 編集」ボタンから座席、時間、料金、予約番号を直接変更・保存できます。</p>
+                </div>
+                <div class="text-xs font-bold text-slate-600 mt-2 md:mt-0 flex items-center space-x-4">
+                    <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span> 予約確定済み（4便）</span>
+                    <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5"></span> 未予約（1便）</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Flights List Container -->
+            <div id="flightsDynamicContainer" class="space-y-6">
+            </div>
+        </div>
+    </section>
+
+    <!-- Hotels & Accommodation Locations Section (Dynamic Editable) -->
+    <section id="hotels" class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <span class="text-xs font-bold text-brand-darkGold uppercase tracking-widest">Accommodations Guide</span>
+            <h2 class="text-2xl sm:text-4xl font-serif-title font-bold text-brand-navy mt-1">宿泊予定エリア &amp; ホテル情報（全4地域予約確定）</h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-2">「✏️ 編集」ボタンからホテル名、住所、電話番号、チェックイン/アウト時間を更新できます。</p>
+        </div>
+
+        <!-- Dynamic Hotels Grid Container -->
+        <div id="hotelsDynamicContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        </div>
+    </section>
+
+    <!-- Transportation Section (Dynamic Editable) -->
+    <section id="transport" class="py-16 bg-brand-sand/50 border-t border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-10">
+                <span class="text-xs font-bold text-brand-darkGold uppercase tracking-widest">Local Transportation Options</span>
+                <h2 class="text-2xl sm:text-4xl font-serif-title font-bold text-brand-navy mt-1">現地移動手段</h2>
+                <p class="text-xs text-slate-500 mt-1">レンタカー、フェリー、列車の予約状況や利用日時を直接編集可能です。</p>
+            </div>
+
+            <!-- Dynamic Transport Grid Container -->
+            <div id="transportDynamicContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            </div>
+        </div>
+    </section>
+
+    <!-- Destinations & Places to Visit Gallery -->
+    <section id="spots" class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+            <div>
+                <span class="text-xs font-bold text-brand-darkGold uppercase tracking-widest">Iconic Destinations &amp; Experiences</span>
+                <h2 class="text-2xl sm:text-4xl font-serif-title font-bold text-brand-navy mt-1">訪問予定の主要スポット</h2>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-600 mt-2 md:mt-0 max-w-md">
+                キプロスの極上ビーチと世界遺産、南イタリアの古代遺跡、北イタリアの美しい湖畔リゾートの魅力を紹介します。
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <!-- 1. Ayia Napa -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-slate-200 flex flex-col justify-between group">
+                <div>
+                    <div class="relative h-56 overflow-hidden bg-slate-100">
+                        <img src="https://drive.google.com/thumbnail?id=13L8apV5YAx-jXEBDk7Eye4l1-laM3FMG&sz=w1000" 
+                             onerror="if(!this.dataset.tried){this.dataset.tried=1;this.src='https://drive.google.com/uc?export=view&id=13L8apV5YAx-jXEBDk7Eye4l1-laM3FMG';}else if(this.dataset.tried==1){this.dataset.tried=2;this.src='CY-IT Pamphlet/ayia%20napa.jpg';}else if(this.dataset.tried==2){this.dataset.tried=3;this.src='ayia%20napa.jpg';}" 
+                             alt="Ayia Napa" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-brand-navy text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full shadow-md">Cyprus</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-serif-title font-bold text-brand-navy">Ayia Napa（アヤナパ）</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed mt-2">
+                            透き通るクリスタルブルーの海と白い砂浜が広がるキプロス屈指の地中海ビーチリゾート。
+                        </p>
+                    </div>
+                </div>
+                <div class="px-6 pb-6 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span><i class="fa-solid fa-umbrella-beach text-brand-darkGold mr-1"></i> ビーチ / リゾート</span>
+                    <a href="https://maps.google.com/?q=Ayia+Napa+Cyprus" target="_blank" rel="noopener" class="text-brand-darkGold hover:underline font-bold inline-flex items-center gap-1">
+                        Google Maps <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 2. GUABA Beach Bar -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-slate-200 flex flex-col justify-between group">
+                <div>
+                    <div class="relative h-56 overflow-hidden bg-slate-100">
+                        <img src="https://drive.google.com/thumbnail?id=1PsaoL5YdA2lIP4F_bHAer4XRbvRXCa7Q&sz=w1000" 
+                             onerror="if(!this.dataset.tried){this.dataset.tried=1;this.src='https://drive.google.com/uc?export=view&id=1PsaoL5YdA2lIP4F_bHAer4XRbvRXCa7Q';}else if(this.dataset.tried==1){this.dataset.tried=2;this.src='CY-IT Pamphlet/guaba.jpg';}else if(this.dataset.tried==2){this.dataset.tried=3;this.src='guaba.jpg';}" 
+                             alt="GUABA" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-brand-navy text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full shadow-md">Limassol</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-serif-title font-bold text-brand-navy">GUABA Beach Bar</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed mt-2">
+                            リマソルの海岸沿いにある世界的に有名なビーチクラブ。地中海の潮風とともに活気あるひとときを楽しめます。
+                        </p>
+                    </div>
+                </div>
+                <div class="px-6 pb-6 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span><i class="fa-solid fa-glass-cheers text-brand-darkGold mr-1"></i> ナイトライフ / ビーチ</span>
+                    <a href="https://maps.google.com/?q=Guaba+Beach+Bar+Limassol" target="_blank" rel="noopener" class="text-brand-darkGold hover:underline font-bold inline-flex items-center gap-1">
+                        Google Maps <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 3. Troodos Mountains -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-slate-200 flex flex-col justify-between group">
+                <div>
+                    <div class="relative h-56 overflow-hidden bg-slate-100">
+                        <img src="https://drive.google.com/thumbnail?id=1W2Xl_9tHGP5pUdN3-Ei9YAETXID85KLi&sz=w1000" 
+                             onerror="if(!this.dataset.tried){this.dataset.tried=1;this.src='https://drive.google.com/uc?export=view&id=1W2Xl_9tHGP5pUdN3-Ei9YAETXID85KLi';}else if(this.dataset.tried==1){this.dataset.tried=2;this.src='CY-IT Pamphlet/troodos.jpg';}else if(this.dataset.tried==2){this.dataset.tried=3;this.src='troodos.jpg';}" 
+                             alt="Troodos" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-brand-navy text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full shadow-md">Cyprus</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-serif-title font-bold text-brand-navy">Troodos Mountains（トロドス山脈）</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed mt-2">
+                            島中央に広がる山脈。ユネスコ世界遺産のビザンティン聖堂や、豊かな自然に囲まれた美しい伝統の村々が散在。
+                        </p>
+                    </div>
+                </div>
+                <div class="px-6 pb-6 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span><i class="fa-solid fa-mountain text-brand-darkGold mr-1"></i> 世界遺産 / 自然</span>
+                    <a href="https://maps.google.com/?q=Troodos+Mountains+Cyprus" target="_blank" rel="noopener" class="text-brand-darkGold hover:underline font-bold inline-flex items-center gap-1">
+                        Google Maps <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4. Kourion Ruins -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-slate-200 flex flex-col justify-between group">
+                <div>
+                    <div class="relative h-56 overflow-hidden bg-slate-100">
+                        <img src="https://drive.google.com/thumbnail?id=1dyqrh_Hg_xQ4I887I51ATOzvif0JZXfe&sz=w1000" 
+                             onerror="if(!this.dataset.tried){this.dataset.tried=1;this.src='https://drive.google.com/uc?export=view&id=1dyqrh_Hg_xQ4I887I51ATOzvif0JZXfe';}else if(this.dataset.tried==1){this.dataset.tried=2;this.src='CY-IT Pamphlet/kourion.jpg';}else if(this.dataset.tried==2){this.dataset.tried=3;this.src='kourion.jpg';}" 
+                             alt="Kourion" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-brand-navy text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full shadow-md">Limassol</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-serif-title font-bold text-brand-navy">Kourion Ruins（クーリオン遺跡）</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed mt-2">
+                            地中海を一望する断崖に建つ古代ギリシャ・ローマ都市遺跡。保存状態の良い野外劇場や豪華なモザイク画が見どころ。
+                        </p>
+                    </div>
+                </div>
+                <div class="px-6 pb-6 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span><i class="fa-solid fa-landmark text-brand-darkGold mr-1"></i> 歴史遺跡</span>
+                    <a href="https://maps.google.com/?q=Kourion+Archaeological+Site+Limassol" target="_blank" rel="noopener" class="text-brand-darkGold hover:underline font-bold inline-flex items-center gap-1">
+                        Google Maps <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 5. Pompeii Ruins -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-slate-200 flex flex-col justify-between group">
+                <div>
+                    <div class="relative h-56 overflow-hidden bg-slate-100">
+                        <img src="https://drive.google.com/thumbnail?id=19caJcF7jfm6LFMLrARDzghDexXpY4Txs&sz=w1000" 
+                             onerror="if(!this.dataset.tried){this.dataset.tried=1;this.src='https://drive.google.com/uc?export=view&id=19caJcF7jfm6LFMLrARDzghDexXpY4Txs';}else if(this.dataset.tried==1){this.dataset.tried=2;this.src='CY-IT Pamphlet/pompeii.jpg';}else if(this.dataset.tried==2){this.dataset.tried=3;this.src='pompeii.jpg';}" 
+                             alt="Pompeii" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-brand-terracotta text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full shadow-md">Italy</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-serif-title font-bold text-brand-navy">Pompeii Ruins（ポンペイ遺跡）</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed mt-2">
+                            ヴェスヴィオ火山噴火により一瞬にして火山灰に飲み込まれた古代ローマの都市。タイムスリップしたかのような歴史の遺産。
+                        </p>
+                    </div>
+                </div>
+                <div class="px-6 pb-6 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span><i class="fa-solid fa-monument text-brand-darkGold mr-1"></i> ユネスコ世界遺産</span>
+                    <a href="https://maps.google.com/?q=Pompeii+Archaeological+Park+Naples" target="_blank" rel="noopener" class="text-brand-darkGold hover:underline font-bold inline-flex items-center gap-1">
+                        Google Maps <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 6. Lake Maggiore -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-slate-200 flex flex-col justify-between group">
+                <div>
+                    <div class="relative h-56 overflow-hidden bg-slate-100">
+                        <img src="https://drive.google.com/thumbnail?id=17QwVjhHHRNpDQBoQdvqeMJHHOdGvT6fH&sz=w1000" 
+                             onerror="if(!this.dataset.tried){this.dataset.tried=1;this.src='https://drive.google.com/uc?export=view&id=17QwVjhHHRNpDQBoQdvqeMJHHOdGvT6fH';}else if(this.dataset.tried==1){this.dataset.tried=2;this.src='CY-IT Pamphlet/lagomaggiore.jpg';}else if(this.dataset.tried==2){this.dataset.tried=3;this.src='lagomaggiore.jpg';}" 
+                             alt="Lake Maggiore" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-brand-terracotta text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full shadow-md">Italy</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-serif-title font-bold text-brand-navy">Lake Maggiore（マッジョーレ湖・ストレザ）</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed mt-2">
+                            アルプスの麓に広がる美しき湖畔リゾート。ボッロメオ諸島の華麗な庭園や宮殿を満喫する旅のフィナーレ。
+                        </p>
+                    </div>
+                </div>
+                <div class="px-6 pb-6 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span><i class="fa-solid fa-water text-brand-darkGold mr-1"></i> 湖畔リゾート</span>
+                    <a href="https://maps.google.com/?q=Stresa+Lake+Maggiore+Italy" target="_blank" rel="noopener" class="text-brand-darkGold hover:underline font-bold inline-flex items-center gap-1">
+                        Google Maps <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 7. And More Card -->
+            <div class="bg-gradient-to-br from-brand-navy via-slate-900 to-slate-800 rounded-2xl overflow-hidden shadow-lg border border-brand-gold/40 flex flex-col justify-between p-8 text-white relative group">
+                <div class="space-y-4">
+                    <div class="inline-flex items-center space-x-2 bg-brand-gold/20 text-brand-gold px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border border-brand-gold/30">
+                        <i class="fa-solid fa-compass animate-spin"></i>
+                        <span>More Places Coming Soon</span>
+                    </div>
+                    <h3 class="text-2xl font-serif-title font-bold text-brand-gold mt-2">And More...</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        アマルフィ海岸（ポジターノ、ラヴェッロ）、リマソルの歴史的旧市街、隠れた美味しいタベルナなど、立ち寄りスポットを順次追加していきます。
+                    </p>
+                </div>
+                <div class="pt-6 border-t border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
+                    <span class="italic text-[11px]">Next Destinations...</span>
+                    <i class="fa-solid fa-earth-europe text-brand-gold text-lg"></i>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Pre-Trip Checklist Section -->
+    <section id="checklist" class="py-16 bg-brand-navy text-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            <div class="text-center mb-10">
+                <span class="text-xs font-bold text-brand-gold uppercase tracking-widest">Pre-Trip Planning Checklist</span>
+                <h2 class="text-2xl sm:text-4xl font-serif-title font-bold text-white mt-1">手配チェックリスト</h2>
+                <p class="text-xs text-slate-300 mt-2">手配項目にチェックを入れると、上のカードのステータスも自動で「予約済」に連動更新されます。</p>
+            </div>
+
+            <div class="bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-md space-y-3" id="todoContainer">
+            </div>
+        </div>
+    </section>
+
+    <!-- Edit Flight Modal -->
+    <div id="editFlightModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-slate-900 border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-serif-title font-bold text-base text-brand-navy"><i class="fa-solid fa-pen-to-square mr-2 text-brand-darkGold"></i>フライト情報の編集</h3>
+                <button type="button" onclick="closeEditModal('editFlightModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <input type="hidden" id="editFlightIndex">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">区間 / タイトル</label>
+                <input type="text" id="editFlightRoute" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">経由 / 区分</label>
+                    <input type="text" id="editFlightVia" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">予約状況</label>
+                    <select id="editFlightStatus" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                        <option value="予約済">予約済</option>
+                        <option value="未予約">未予約</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">予約番号 / 照会番号</label>
+                    <input type="text" id="editFlightBookingNo" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">価格（概算・合計）</label>
+                    <input type="text" id="editFlightPrice" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">搭乗者</label>
+                <input type="text" id="editFlightPassengers" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">1区間目詳細（便名、日時、座席など）</label>
+                <textarea id="editFlightLeg1" rows="2" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:border-brand-gold focus:outline-none"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">2区間目詳細（乗り継ぎがある場合）</label>
+                <textarea id="editFlightLeg2" rows="2" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:border-brand-gold focus:outline-none"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">手荷物規定・メモ</label>
+                <input type="text" id="editFlightLuggage" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button type="button" onclick="closeEditModal('editFlightModal')" class="px-4 py-2 text-xs text-slate-500 hover:text-slate-700">キャンセル</button>
+                <button type="button" onclick="saveFlightEdit()" class="bg-brand-navy hover:bg-brand-darkGold text-white font-bold px-5 py-2 rounded-xl text-xs transition-colors">変更を保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Hotel Modal -->
+    <div id="editHotelModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-slate-900 border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-serif-title font-bold text-base text-brand-navy"><i class="fa-solid fa-pen-to-square mr-2 text-brand-darkGold"></i>宿泊エリア・ホテルの編集</h3>
+                <button type="button" onclick="closeEditModal('editHotelModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <input type="hidden" id="editHotelIndex">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">施設名 / ホテル名</label>
+                <input type="text" id="editHotelName" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">地域区分・メモ</label>
+                    <input type="text" id="editHotelRegion" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">予約状況</label>
+                    <select id="editHotelStatus" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                        <option value="予約済">予約済</option>
+                        <option value="未予約">未予約</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">予約番号 (Booking No.)</label>
+                    <input type="text" id="editHotelBookingNo" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">電話番号</label>
+                    <input type="text" id="editHotelPhone" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">住所</label>
+                <input type="text" id="editHotelAddress" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">泊数</label>
+                    <input type="text" id="editHotelNights" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">チェックイン時間</label>
+                    <input type="text" id="editHotelCheckIn" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">チェックアウト時間</label>
+                    <input type="text" id="editHotelCheckOut" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">宿泊価格</label>
+                <input type="text" id="editHotelPrice" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">詳細メモ（立地・特徴）</label>
+                <textarea id="editHotelNotes" rows="2" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:border-brand-gold focus:outline-none"></textarea>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button type="button" onclick="closeEditModal('editHotelModal')" class="px-4 py-2 text-xs text-slate-500 hover:text-slate-700">キャンセル</button>
+                <button type="button" onclick="saveHotelEdit()" class="bg-brand-navy hover:bg-brand-darkGold text-white font-bold px-5 py-2 rounded-xl text-xs transition-colors">変更を保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Transport Modal -->
+    <div id="editTransportModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-slate-900 border border-slate-200">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-serif-title font-bold text-base text-brand-navy"><i class="fa-solid fa-pen-to-square mr-2 text-brand-darkGold"></i>移動手段の編集</h3>
+                <button type="button" onclick="closeEditModal('editTransportModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <input type="hidden" id="editTransportIndex">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">移動手段名 / 項目</label>
+                <input type="text" id="editTransportTitle" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">種別</label>
+                    <input type="text" id="editTransportType" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">予約状況</label>
+                    <select id="editTransportStatus" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                        <option value="予約済">予約済</option>
+                        <option value="未予約">未予約</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">受取 / 往路</label>
+                    <input type="text" id="editTransportPickup" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">返却 / 復路</label>
+                    <input type="text" id="editTransportDropoff" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">料金</label>
+                <input type="text" id="editTransportPrice" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:border-brand-gold focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">詳細メモ</label>
+                <textarea id="editTransportNotes" rows="2" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:border-brand-gold focus:outline-none"></textarea>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button type="button" onclick="closeEditModal('editTransportModal')" class="px-4 py-2 text-xs text-slate-500 hover:text-slate-700">キャンセル</button>
+                <button type="button" onclick="saveTransportEdit()" class="bg-brand-navy hover:bg-brand-darkGold text-white font-bold px-5 py-2 rounded-xl text-xs transition-colors">変更を保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-brand-navy border-t border-white/10 text-white py-10">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400 space-y-2">
+            <p class="font-serif-title text-base text-brand-gold">GRAND EUROPEAN TOUR 2026</p>
+            <p>Designed for Kourtis, Savvas Yuei &amp; Harima, Anju</p>
+            <p class="pt-2 text-[10px] text-slate-500">© 2026 Cyprus &amp; Italy Grand Tour Guide. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Global API key
+        window.GEMINI_API_KEY = "AQ.Ab8RN6J4_tpu_hTKkRJUEt30V9Znoe9v_NVOVKRObIvUoiaoOg";
+
+        // Master Data Model
+        const defaultData = {
+            flights: [
+                {
+                    route: '1. 東京 (NRT) ➔ ラルナカ (LCA)',
+                    via: 'Via ドーハ (DOH)',
+                    bookingNo: 'Confirmation: DCHFIB / Booking No. 73508063093080',
+                    price: '¥281,267 (2名合計)',
+                    status: '予約済',
+                    passengers: '1. Kourtis, Savvas Yuei / 2. Harima, Anju',
+                    leg1: 'Qatar Airways 807 | 9月4日 22:25 NRT ➔ 9月5日 03:20 DOH (座席: 28K, 28J)',
+                    leg2: 'Qatar Airways 265 | 9月5日 08:45 DOH ➔ 9月5日 12:05 LCA (座席: 24K, 24J)',
+                    luggage: '機内: 7KG (50×37×25cm) / 受託: 23KG'
+                },
+                {
+                    route: '2. ラルナカ (LCA) ➔ ナポリ (NAP)',
+                    via: 'Via アテネ (ATH)',
+                    bookingNo: 'Booking No. 1134-477-337',
+                    price: '¥68,433 (2名合計)',
+                    status: '予約済',
+                    passengers: '1. Kourtis, Savvas Yuei / 2. Harima, Anju',
+                    leg1: 'Aegean Airlines A3901 | 9月11日 05:00 LCA ➔ 9月11日 06:45 ATH (座席: 30F, 30E)',
+                    leg2: 'Aegean Airlines A3680 | 9月11日 08:05 ATH ➔ 9月11日 08:50 NAP (座席: 17F, 17E)',
+                    luggage: '機内: 座席下バッグ OR 頭上8KG (55×40×23cm) / 受託: 追加23KG(158cm) 事前€33/空港€50'
+                },
+                {
+                    route: '3. ナポリ (NAP) ➔ ミラノ・マルペンサ (MXP)',
+                    via: '直行便',
+                    bookingNo: 'Booking No. 1132-292-574',
+                    price: '¥29,622 (2名合計)',
+                    status: '予約済',
+                    passengers: '1. Kourtis, Savvas Yuei / 2. Harima, Anju',
+                    leg1: 'Wizz Air Malta WA6422 | 9月14日 10:50 NAP ➔ 9月14日 12:30 MXP (座席: 22F, 22E)',
+                    leg2: '',
+                    luggage: '機内: 座席下10KG (55×40×23cm) / 追加: 頭上10KG €10-€60 (Wizz Priority)'
+                },
+                {
+                    route: '4. ミラノ (MXP) ➔ ラルナカ (LCA)',
+                    via: '帰国便・Kourtis様',
+                    bookingNo: 'Booking No. 1688900882687192',
+                    price: '¥7,410',
+                    status: '予約済',
+                    passengers: '1. Kourtis, Savvas Yuei 様',
+                    leg1: 'Wizz Air Malta W46451 | 9月17日 05:00 MXP ➔ 9月17日 09:35 LCA (座席: チェックイン時指定)',
+                    leg2: '',
+                    luggage: '機内: 座席下10KG (55×40×23cm) / 追加: 頭上10KG €10-€60 (Wizz Priority)'
+                },
+                {
+                    route: '5. ミラノ (MXP) ➔ 東京 (TYO)',
+                    via: '帰国便・Harima様',
+                    bookingNo: '未予約',
+                    price: '未定',
+                    status: '未予約',
+                    passengers: 'Harima, Anju 様',
+                    leg1: '2026年9月17日 MXP ➔ 9月18日 TYO着（手配中）',
+                    leg2: '',
+                    luggage: '手配中'
+                }
+            ],
+            hotels: [
+                {
+                    name: 'City Centre Rooms',
+                    region: 'Limassol（リマソル）',
+                    bookingNo: '5470541385',
+                    address: 'Spyrou Araouzou 63, Limassol 3036, Cyprus',
+                    phone: '+357-99-478846',
+                    nights: '5泊',
+                    checkIn: '9月5日 14:00 - 24:00',
+                    checkOut: '9月10日 08:00 - 12:00',
+                    price: '¥61,182 (€336.25)',
+                    status: '予約済',
+                    notes: 'リマソル中心部・ビーチフロント絶好ロケーション'
+                },
+                {
+                    name: 'B&B Villa Italia',
+                    region: 'Amalfi Coast（アマルフィ海岸 / アジェーロラ）',
+                    bookingNo: '5816637118',
+                    address: 'Via Pendola, 18, 80051 Agerola NA, Italy',
+                    phone: '+39-347-721-5497',
+                    nights: '2泊',
+                    checkIn: '9月11日 16:30 - 19:30',
+                    checkOut: '9月13日 08:00 - 10:30',
+                    price: '¥28,759 (€158.41)',
+                    status: '予約済',
+                    notes: 'アマルフィ・ポジターノ周遊に最適な崖の上のB&B'
+                },
+                {
+                    name: 'Airport Capodichino Home By Pagnotta',
+                    region: 'Naples（ナポリ空港エリア）',
+                    bookingNo: '5559618985',
+                    address: 'Strada Comunale del Cassano, 55, 80144 Napoli NA, Italy',
+                    phone: '+39-333-656-3814',
+                    nights: '1泊',
+                    checkIn: '9月13日 14:00 - 24:00',
+                    checkOut: '9月14日 08:00 - 11:00',
+                    price: '¥8,990 (€48.31)',
+                    status: '予約済',
+                    notes: '翌朝10:50発のミラノ行きフライトに絶好のアプローチ'
+                },
+                {
+                    name: 'Hotel Elena',
+                    region: 'Lake Maggiore（マッジョーレ湖・ストレザ）',
+                    bookingNo: '5799336776',
+                    address: 'Piazza Luigi Cadorna, 15, 28838 Stresa VB, Italy',
+                    phone: '+39-0323-31043',
+                    nights: '2泊',
+                    checkIn: '9月14日 14:00 - 21:00',
+                    checkOut: '9月16日 07:30 - 10:30',
+                    price: '€200 (約¥34,000)',
+                    status: '予約済',
+                    notes: 'ストレザ中心部・ボッロメオ諸島への観光船乗り場近接'
+                }
+            ],
+            transport: [
+                {
+                    title: 'ナポリ レンタカー (Budget)',
+                    type: 'Car Rental',
+                    pickup: '9月11日 11:00（ナポリ国際空港）',
+                    dropoff: '9月14日 09:00（ナポリ国際空港）',
+                    price: '¥20,741（デポジット €200 返却時返還）',
+                    status: '予約済',
+                    notes: '確認番号: 746056902 / Budget社。ソレント、アマルフィ海岸ドライブ。要国際免許証。'
+                },
+                {
+                    title: 'アマルフィ〜ポジターノ フェリー',
+                    type: 'Ferry',
+                    pickup: '9月12日（往路）',
+                    dropoff: '9月12日（復路）',
+                    price: '未定',
+                    status: '未予約',
+                    notes: '絶景ポジターノ沿岸クルージング。事前予約推奨。'
+                },
+                {
+                    title: '特急列車 (Train)',
+                    type: 'Rail',
+                    pickup: '9月14日（マルペンサ ➔ ストレザ）',
+                    dropoff: '9月17日（ストレザ ➔ マルペンサ）',
+                    price: '未定',
+                    status: '未予約',
+                    notes: 'マルペンサ空港〜ストレザ間直通・特急列車。'
+                }
+            ],
+            checklist: [
+                { id: 1, text: "9/17 ミラノ(MXP) ➔ ラルナカ(LCA) フライト手配（Kourtis様）", checked: true },
+                { id: 2, text: "9/17 ミラノ(MXP) ➔ 東京(TYO) 帰国フライト手配（Harima様）", checked: false },
+                { id: 3, text: "リマソル ホテル手配（City Centre Rooms：9/5 〜 9/10）", checked: true },
+                { id: 4, text: "アマルフィ海岸 ホテル手配（B&B Villa Italia：9/11 〜 9/13）", checked: true },
+                { id: 5, text: "ナポリ ホテル手配（Airport Capodichino Home：9/13 〜 9/14）", checked: true },
+                { id: 6, text: "マッジョーレ湖（ストレザ） ホテル手配（Hotel Elena：9/14 〜 9/16）", checked: true },
+                { id: 7, text: "ナポリ レンタカー予約（9/11 〜 9/14：Budget 746056902）＆国際運転免許証手配", checked: true },
+                { id: 8, text: "アマルフィ〜ポジターノ 往復フェリー予約（9/12）", checked: false },
+                { id: 9, text: "マルペンサ〜ストレザ 特急列車の時刻確認・チケット予約（9/14, 9/17）", checked: false }
+            ]
+        };
+
+        // Load Local Storage
+        function loadItineraryData() {
+            try {
+                const saved = localStorage.getItem('cyprus_italy_tour_data');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && parsed.flights && parsed.hotels) {
+                        return parsed;
+                    }
+                }
+            } catch(e) {
+                console.error("Local storage error:", e);
+            }
+            return defaultData;
+        }
+
+        window.itineraryData = loadItineraryData();
+
+        function saveLocalState() {
+            try {
+                localStorage.setItem('cyprus_italy_tour_data', JSON.stringify(window.itineraryData));
+            } catch(e) {
+                console.error("Failed to save local state:", e);
+            }
+        }
+
+        let map = null;
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        function smoothScroll(e, sectionId) {
+            if (e) e.preventDefault();
+            const element = document.getElementById(sectionId);
+            if (element) {
+                const headerOffset = 80;
+                const elementPosition = element.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+        }
+
+        function scrollToSection(sectionId) {
+            smoothScroll(null, sectionId);
+        }
+
+        // Helper to Parse Amount from string
+        function parseYenAmount(priceStr) {
+            if (!priceStr || priceStr.includes('未定')) return 0;
+            // First look for 約¥数値 or ¥数値
+            const yenMatch = priceStr.match(/¥([0-9,]+)/);
+            if (yenMatch) {
+                return parseInt(yenMatch[1].replace(/,/g, ''), 10) || 0;
+            }
+            // Euro fallback €200 -> 34000
+            const euroMatch = priceStr.match(/€([0-9,.]+)/);
+            if (euroMatch) {
+                const euro = parseFloat(euroMatch[1]) || 0;
+                return Math.round(euro * 170); // approx 170 yen / euro
+            }
+            return 0;
+        }
+
+        // Calculate and Render Expenses Summary Dashboard
+        function renderExpensesSummary() {
+            if (!window.itineraryData) return;
+
+            let flightSum = 0;
+            let hotelSum = 0;
+            let transportSum = 0;
+            const tableBody = document.getElementById('expenseTableBody');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+
+            // 1. Flights
+            window.itineraryData.flights.forEach(f => {
+                const amt = parseYenAmount(f.price);
+                if (f.status === '予約済') flightSum += amt;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-700/30 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 font-bold text-brand-gold"><i class="fa-solid fa-plane mr-1.5"></i> フライト</td>
+                    <td class="py-3 font-medium">${f.route}</td>
+                    <td class="py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${f.status === '予約済' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">${f.status}</span></td>
+                    <td class="py-3 text-right font-bold ${amt > 0 ? 'text-white' : 'text-slate-500'}">${f.price || '未定'}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            // 2. Hotels
+            window.itineraryData.hotels.forEach(h => {
+                const amt = parseYenAmount(h.price);
+                if (h.status === '予約済') hotelSum += amt;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-700/30 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 font-bold text-rose-400"><i class="fa-solid fa-hotel mr-1.5"></i> 宿泊ホテル</td>
+                    <td class="py-3 font-medium">${h.name} (${h.region})</td>
+                    <td class="py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${h.status === '予約済' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">${h.status}</span></td>
+                    <td class="py-3 text-right font-bold ${amt > 0 ? 'text-white' : 'text-slate-500'}">${h.price || '未定'}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            // 3. Transport
+            window.itineraryData.transport.forEach(t => {
+                const amt = parseYenAmount(t.price);
+                if (t.status === '予約済') transportSum += amt;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-700/30 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 font-bold text-indigo-400"><i class="fa-solid fa-car mr-1.5"></i> 現地移動</td>
+                    <td class="py-3 font-medium">${t.title}</td>
+                    <td class="py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.status === '予約済' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">${t.status}</span></td>
+                    <td class="py-3 text-right font-bold ${amt > 0 ? 'text-white' : 'text-slate-500'}">${t.price || '未定'}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            const grandTotal = flightSum + hotelSum + transportSum;
+
+            // DOM Update Summary Stats
+            document.getElementById('summaryTotalConfirmed').textContent = `¥${grandTotal.toLocaleString()}`;
+            document.getElementById('summaryFlightTotal').textContent = `¥${flightSum.toLocaleString()}`;
+            document.getElementById('summaryHotelTotal').textContent = `¥${hotelSum.toLocaleString()}`;
+            document.getElementById('summaryTransportTotal').textContent = `¥${transportSum.toLocaleString()}`;
+
+            // Ratio Progress Bar
+            if (grandTotal > 0) {
+                const pFlight = ((flightSum / grandTotal) * 100).toFixed(1);
+                const pHotel = ((hotelSum / grandTotal) * 100).toFixed(1);
+                const pTransport = ((transportSum / grandTotal) * 100).toFixed(1);
+
+                document.getElementById('barFlight').style.width = `${pFlight}%`;
+                document.getElementById('barHotel').style.width = `${pHotel}%`;
+                document.getElementById('barTransport').style.width = `${pTransport}%`;
+
+                document.getElementById('ratioText').textContent = `フライト ${pFlight}% | 宿泊 ${pHotel}% | 移動 ${pTransport}%`;
+            }
+        }
+
+        // Render Dynamic Flights List
+        function renderFlights() {
+            const container = document.getElementById('flightsDynamicContainer');
+            if (!container || !window.itineraryData || !window.itineraryData.flights) return;
+            container.innerHTML = '';
+
+            window.itineraryData.flights.forEach((item, index) => {
+                const isBooked = item.status === '予約済';
+                const card = document.createElement('div');
+                card.className = `bg-white border ${isBooked ? 'border-slate-200' : 'border-amber-300'} rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative`;
+
+                card.innerHTML = `
+                    <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-4 mb-4 gap-2">
+                        <div class="flex items-center space-x-3">
+                            <span class="${isBooked ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300'} text-xs font-bold px-3 py-1 rounded-full uppercase border">
+                                ${item.status}
+                            </span>
+                            <h3 class="text-base sm:text-lg font-serif-title font-bold text-brand-navy">${item.route}</h3>
+                            <span class="text-xs text-slate-500 font-medium">${item.via}</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-sm font-bold text-brand-navy">価格: <strong class="text-brand-darkGold font-extrabold">${item.price}</strong></span>
+                            <button onclick="openEditFlightModal(${index})" class="text-xs bg-slate-100 hover:bg-brand-gold hover:text-white text-slate-700 font-bold px-3 py-1.5 rounded-lg border border-slate-200 transition-colors">
+                                <i class="fa-solid fa-pen-to-square mr-1"></i> 編集
+                            </button>
+                        </div>
+                    </div>
+
+                    ${item.bookingNo ? `<div class="mb-3 inline-block bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold px-3 py-1 rounded-lg"><i class="fa-solid fa-ticket mr-1.5 text-brand-darkGold"></i> ${item.bookingNo}</div>` : ''}
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            ${item.leg1 ? `<div class="bg-slate-50 p-3 rounded-xl text-xs text-slate-800 font-medium border border-slate-200"><i class="fa-solid fa-plane-departure mr-1.5 text-brand-darkGold"></i> ${item.leg1}</div>` : ''}
+                            ${item.leg2 ? `<div class="bg-slate-50 p-3 rounded-xl text-xs text-slate-800 font-medium border border-slate-200"><i class="fa-solid fa-plane-arrival mr-1.5 text-brand-darkGold"></i> ${item.leg2}</div>` : ''}
+                        </div>
+                        <div class="bg-amber-50/50 p-4 rounded-xl text-xs space-y-1.5 border border-amber-200 text-slate-700">
+                            <p><strong class="text-slate-900">搭乗者:</strong> ${item.passengers}</p>
+                            <p><strong class="text-slate-900">手荷物規定:</strong> ${item.luggage}</p>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Render Dynamic Hotels List
+        function renderHotels() {
+            const container = document.getElementById('hotelsDynamicContainer');
+            if (!container || !window.itineraryData || !window.itineraryData.hotels) return;
+            container.innerHTML = '';
+
+            window.itineraryData.hotels.forEach((item, index) => {
+                const isBooked = item.status === '予約済';
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between";
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-[10px] font-bold uppercase ${isBooked ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-900 border-amber-300'} px-2.5 py-1 rounded-full border">
+                                ${item.status}
+                            </span>
+                            <button onclick="openEditHotelModal(${index})" class="text-[11px] bg-slate-100 hover:bg-brand-gold hover:text-white text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 transition-colors">
+                                <i class="fa-solid fa-pen mr-1"></i> 編集
+                            </button>
+                        </div>
+                        <h3 class="text-lg font-serif-title font-bold text-brand-navy">${item.name}</h3>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">${item.region}</p>
+
+                        ${item.bookingNo ? `<div class="mt-2 text-[11px] bg-slate-100 text-slate-800 px-2.5 py-1 rounded-md font-bold border border-slate-200 inline-block"><i class="fa-solid fa-hashtag mr-1 text-brand-darkGold"></i> ${item.bookingNo}</div>` : ''}
+                        
+                        <div class="mt-3 space-y-1.5 text-xs text-slate-800 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                            <p><strong>泊数:</strong> ${item.nights}</p>
+                            <p><strong>IN:</strong> ${item.checkIn}</p>
+                            <p><strong>OUT:</strong> ${item.checkOut}</p>
+                            <p><strong>料金:</strong> ${item.price}</p>
+                            ${item.address ? `<p class="pt-1 border-t border-slate-200"><strong class="text-slate-900">住所:</strong> <a href="https://maps.google.com/?q=${encodeURIComponent(item.address)}" target="_blank" rel="noopener" class="text-brand-darkGold underline font-semibold">${item.address}</a></p>` : ''}
+                            ${item.phone ? `<p><strong class="text-slate-900">TEL:</strong> <a href="tel:${item.phone}" class="text-brand-darkGold font-semibold hover:underline">${item.phone}</a></p>` : ''}
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-600 italic">
+                        ${item.notes}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Render Dynamic Transport List
+        function renderTransport() {
+            const container = document.getElementById('transportDynamicContainer');
+            if (!container || !window.itineraryData || !window.itineraryData.transport) return;
+            container.innerHTML = '';
+
+            window.itineraryData.transport.forEach((item, index) => {
+                const isBooked = item.status === '予約済';
+                const card = document.createElement('div');
+                card.className = "bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between";
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold border border-amber-300">${item.type}</span>
+                                <span class="text-[10px] ${isBooked ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-900 border-amber-300'} px-2 py-0.5 rounded-full font-bold border">${item.status}</span>
+                            </div>
+                            <button onclick="openEditTransportModal(${index})" class="text-[11px] bg-slate-100 hover:bg-brand-gold hover:text-white text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 transition-colors">
+                                <i class="fa-solid fa-pen mr-1"></i> 編集
+                            </button>
+                        </div>
+                        <h3 class="font-serif-title font-bold text-base text-brand-navy">${item.title}</h3>
+                        
+                        <div class="mt-3 space-y-1 text-xs text-slate-800 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                            <p><strong>受取/往路:</strong> ${item.pickup}</p>
+                            <p><strong>返却/復路:</strong> ${item.dropoff}</p>
+                            <p><strong>料金:</strong> ${item.price}</p>
+                        </div>
+                        <p class="text-xs text-slate-600 mt-3 leading-relaxed">${item.notes}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Render Checklist items
+        function renderChecklist() {
+            const container = document.getElementById('todoContainer');
+            if (!container || !window.itineraryData || !window.itineraryData.checklist) return;
+            container.innerHTML = '';
+
+            window.itineraryData.checklist.forEach(item => {
+                const row = document.createElement('div');
+                row.className = `flex items-center justify-between p-3.5 rounded-xl border transition-all duration-200 cursor-pointer ${
+                    item.checked 
+                    ? 'bg-emerald-950/40 border-emerald-500/50 text-slate-300 line-through' 
+                    : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                }`;
+                row.onclick = () => toggleCheck(item.id);
+
+                row.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-5 h-5 rounded border flex items-center justify-center ${
+                            item.checked ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300'
+                        }">
+                            ${item.checked ? '<i class="fa-solid fa-check text-xs"></i>' : ''}
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium">${item.text}</span>
+                    </div>
+                    <span class="text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full ${
+                        item.checked ? 'bg-emerald-500/30 text-emerald-300' : 'bg-amber-500/30 text-amber-300'
+                    }">${item.checked ? '完了 (予約済)' : '未予約'}</span>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // Two-way synchronization between Checklist and Cards
+        function toggleCheck(id) {
+            if (!window.itineraryData || !window.itineraryData.checklist) return;
+            const target = window.itineraryData.checklist.find(i => i.id === id);
+            if (!target) return;
+
+            target.checked = !target.checked;
+            const newStatus = target.checked ? '予約済' : '未予約';
+
+            if (id === 1 && window.itineraryData.flights[3]) window.itineraryData.flights[3].status = newStatus;
+            else if (id === 2 && window.itineraryData.flights[4]) window.itineraryData.flights[4].status = newStatus;
+            else if (id === 3 && window.itineraryData.hotels[0]) window.itineraryData.hotels[0].status = newStatus;
+            else if (id === 4 && window.itineraryData.hotels[1]) window.itineraryData.hotels[1].status = newStatus;
+            else if (id === 5 && window.itineraryData.hotels[2]) window.itineraryData.hotels[2].status = newStatus;
+            else if (id === 6 && window.itineraryData.hotels[3]) window.itineraryData.hotels[3].status = newStatus;
+            else if (id === 7 && window.itineraryData.transport[0]) window.itineraryData.transport[0].status = newStatus;
+            else if (id === 8 && window.itineraryData.transport[1]) window.itineraryData.transport[1].status = newStatus;
+            else if (id === 9 && window.itineraryData.transport[2]) window.itineraryData.transport[2].status = newStatus;
+
+            window.renderAllDynamicSections();
+            saveLocalState();
+        }
+
+        function syncChecklistFromCards() {
+            if (!window.itineraryData || !window.itineraryData.checklist) return;
+
+            const mapList = [
+                { id: 1, item: window.itineraryData.flights[3] },
+                { id: 2, item: window.itineraryData.flights[4] },
+                { id: 3, item: window.itineraryData.hotels[0] },
+                { id: 4, item: window.itineraryData.hotels[1] },
+                { id: 5, item: window.itineraryData.hotels[2] },
+                { id: 6, item: window.itineraryData.hotels[3] },
+                { id: 7, item: window.itineraryData.transport[0] },
+                { id: 8, item: window.itineraryData.transport[1] },
+                { id: 9, item: window.itineraryData.transport[2] }
+            ];
+
+            mapList.forEach(m => {
+                if (m.item) {
+                    const checkObj = window.itineraryData.checklist.find(c => c.id === m.id);
+                    if (checkObj) {
+                        checkObj.checked = (m.item.status === '予約済');
+                    }
+                }
+            });
+        }
+
+        window.renderAllDynamicSections = function() {
+            renderExpensesSummary();
+            renderFlights();
+            renderHotels();
+            renderTransport();
+            renderChecklist();
+        };
+
+        // Modal Open/Close Logic
+        function closeEditModal(modalId) {
+            const el = document.getElementById(modalId);
+            if (el) el.classList.add('hidden');
+        }
+
+        function openEditFlightModal(index) {
+            const item = window.itineraryData.flights[index];
+            if (!item) return;
+            document.getElementById('editFlightIndex').value = index;
+            document.getElementById('editFlightRoute').value = item.route || '';
+            document.getElementById('editFlightVia').value = item.via || '';
+            document.getElementById('editFlightBookingNo').value = item.bookingNo || '';
+            document.getElementById('editFlightStatus').value = item.status || '未予約';
+            document.getElementById('editFlightPrice').value = item.price || '';
+            document.getElementById('editFlightPassengers').value = item.passengers || '';
+            document.getElementById('editFlightLeg1').value = item.leg1 || '';
+            document.getElementById('editFlightLeg2').value = item.leg2 || '';
+            document.getElementById('editFlightLuggage').value = item.luggage || '';
+            document.getElementById('editFlightModal').classList.remove('hidden');
+        }
+
+        function saveFlightEdit() {
+            const idx = document.getElementById('editFlightIndex').value;
+            if (idx === "") return;
+            window.itineraryData.flights[idx] = {
+                route: document.getElementById('editFlightRoute').value,
+                via: document.getElementById('editFlightVia').value,
+                bookingNo: document.getElementById('editFlightBookingNo').value,
+                status: document.getElementById('editFlightStatus').value,
+                price: document.getElementById('editFlightPrice').value,
+                passengers: document.getElementById('editFlightPassengers').value,
+                leg1: document.getElementById('editFlightLeg1').value,
+                leg2: document.getElementById('editFlightLeg2').value,
+                luggage: document.getElementById('editFlightLuggage').value
+            };
+            syncChecklistFromCards();
+            window.renderAllDynamicSections();
+            saveLocalState();
+            closeEditModal('editFlightModal');
+        }
+
+        function openEditHotelModal(index) {
+            const item = window.itineraryData.hotels[index];
+            if (!item) return;
+            document.getElementById('editHotelIndex').value = index;
+            document.getElementById('editHotelName').value = item.name || '';
+            document.getElementById('editHotelRegion').value = item.region || '';
+            document.getElementById('editHotelBookingNo').value = item.bookingNo || '';
+            document.getElementById('editHotelAddress').value = item.address || '';
+            document.getElementById('editHotelPhone').value = item.phone || '';
+            document.getElementById('editHotelStatus').value = item.status || '未予約';
+            document.getElementById('editHotelNights').value = item.nights || '';
+            document.getElementById('editHotelCheckIn').value = item.checkIn || '';
+            document.getElementById('editHotelCheckOut').value = item.checkOut || '';
+            document.getElementById('editHotelPrice').value = item.price || '';
+            document.getElementById('editHotelNotes').value = item.notes || '';
+            document.getElementById('editHotelModal').classList.remove('hidden');
+        }
+
+        function saveHotelEdit() {
+            const idx = document.getElementById('editHotelIndex').value;
+            if (idx === "") return;
+            window.itineraryData.hotels[idx] = {
+                name: document.getElementById('editHotelName').value,
+                region: document.getElementById('editHotelRegion').value,
+                bookingNo: document.getElementById('editHotelBookingNo').value,
+                address: document.getElementById('editHotelAddress').value,
+                phone: document.getElementById('editHotelPhone').value,
+                status: document.getElementById('editHotelStatus').value,
+                nights: document.getElementById('editHotelNights').value,
+                checkIn: document.getElementById('editHotelCheckIn').value,
+                checkOut: document.getElementById('editHotelCheckOut').value,
+                price: document.getElementById('editHotelPrice').value,
+                notes: document.getElementById('editHotelNotes').value
+            };
+            syncChecklistFromCards();
+            window.renderAllDynamicSections();
+            saveLocalState();
+            closeEditModal('editHotelModal');
+        }
+
+        function openEditTransportModal(index) {
+            const item = window.itineraryData.transport[index];
+            if (!item) return;
+            document.getElementById('editTransportIndex').value = index;
+            document.getElementById('editTransportTitle').value = item.title || '';
+            document.getElementById('editTransportType').value = item.type || '';
+            document.getElementById('editTransportStatus').value = item.status || '未予約';
+            document.getElementById('editTransportPickup').value = item.pickup || '';
+            document.getElementById('editTransportDropoff').value = item.dropoff || '';
+            document.getElementById('editTransportPrice').value = item.price || '';
+            document.getElementById('editTransportNotes').value = item.notes || '';
+            document.getElementById('editTransportModal').classList.remove('hidden');
+        }
+
+        function saveTransportEdit() {
+            const idx = document.getElementById('editTransportIndex').value;
+            if (idx === "") return;
+            window.itineraryData.transport[idx] = {
+                title: document.getElementById('editTransportTitle').value,
+                type: document.getElementById('editTransportType').value,
+                status: document.getElementById('editTransportStatus').value,
+                pickup: document.getElementById('editTransportPickup').value,
+                dropoff: document.getElementById('editTransportDropoff').value,
+                price: document.getElementById('editTransportPrice').value,
+                notes: document.getElementById('editTransportNotes').value
+            };
+            syncChecklistFromCards();
+            window.renderAllDynamicSections();
+            saveLocalState();
+            closeEditModal('editTransportModal');
+        }
+
+        // Export Data JSON File
+        function exportDataJson() {
+            const jsonStr = JSON.stringify(window.itineraryData, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cyprus_italy_tour_2026_data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Import Data JSON File
+        function importDataJson(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const imported = JSON.parse(evt.target.result);
+                    if (imported && imported.flights) {
+                        window.itineraryData = imported;
+                        syncChecklistFromCards();
+                        window.renderAllDynamicSections();
+                        saveLocalState();
+                        alert("旅行データを正常に復元・読み込みました。");
+                    }
+                } catch(err) {
+                    alert("JSONファイルの形式が正しくありません。");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Safe Leaflet Map Initialization with Exact Hotel GPS Coordinates
+        function initMap() {
+            const mapContainer = document.getElementById('map');
+            if (!mapContainer || typeof L === 'undefined') return;
+
+            if (map) {
+                try { map.remove(); } catch(e) {}
+                map = null;
+            }
+
+            try {
+                map = L.map('map', {
+                    center: [38.0, 20.0],
+                    zoom: 4,
+                    scrollWheelZoom: false
+                });
+
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; OpenStreetMap &copy; CARTO',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                }).addTo(map);
+
+                const createIcon = (iconClass, colorBg) => L.divIcon({
+                    html: `<div class="w-8 h-8 ${colorBg} text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white"><i class="${iconClass} text-xs"></i></div>`,
+                    className: '',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
+                });
+
+                const locs = {
+                    NRT: [35.770813113842834, 140.38426152591475],
+                    DOH: [25.273, 51.608],
+                    LCA: [34.871615505363316, 33.60770558384114],
+                    ATH: [37.93646196689423, 23.946503486679298],
+                    NAP: [40.884989615892316, 14.289130078256575],
+                    MXP: [45.62342996556789, 8.72838530587662],
+                    AyiaNapa: [34.982, 34.001],
+                    Guaba: [34.702712749089066, 33.10798770491732],
+                    Troodos: [34.923, 32.883],
+                    Kourion: [34.664, 32.888],
+                    Pompeii: [40.749, 14.486],
+                    Stresa: [45.883, 8.537]
+                };
+
+                const flightPaths = [
+                    [locs.NRT, locs.DOH],
+                    [locs.DOH, locs.LCA],
+                    [locs.LCA, locs.ATH],
+                    [locs.ATH, locs.NAP],
+                    [locs.NAP, locs.MXP]
+                ];
+
+                flightPaths.forEach(path => {
+                    L.polyline(path, { color: '#C5A059', weight: 2.5, opacity: 0.8, dashArray: '6, 8' }).addTo(map);
+                });
+
+                const airports = [
+                    { pos: locs.NRT, title: "東京 成田 (NRT)", desc: "9/4 22:25 出発", mapUrl: "https://maps.google.com/?q=Narita+International+Airport" },
+                    { pos: locs.DOH, title: "ドーハ (DOH)", desc: "カタール航空 乗り継ぎ", mapUrl: "https://maps.google.com/?q=Hamad+International+Airport" },
+                    { pos: locs.LCA, title: "ラルナカ (LCA)", desc: "キプロス 玄関口", mapUrl: "https://maps.google.com/?q=Larnaca+International+Airport" },
+                    { pos: locs.ATH, title: "アテネ (ATH)", desc: "エーゲ航空 乗り継ぎ", mapUrl: "https://maps.google.com/?q=Athens+International+Airport" },
+                    { pos: locs.NAP, title: "ナポリ (NAP)", desc: "南イタリア 拠点", mapUrl: "https://maps.google.com/?q=Naples+International+Airport" },
+                    { pos: locs.MXP, title: "ミラノ・マルペンサ (MXP)", desc: "北イタリア 拠点", mapUrl: "https://maps.google.com/?q=Milan+Malpensa+Airport" }
+                ];
+
+                airports.forEach(a => {
+                    L.marker(a.pos, { icon: createIcon('fa-solid fa-plane', 'bg-brand-navy') })
+                        .bindPopup(`<strong class="text-brand-navy font-bold">${a.title}</strong><br><span class="text-xs text-slate-600">${a.desc}</span><br><a href="${a.mapUrl}" target="_blank" rel="noopener" class="text-[11px] text-brand-darkGold font-bold hover:underline mt-1 inline-block">Google Mapsで見る ➔</a>`)
+                        .addTo(map);
+                });
+
+                const spots = [
+                    { pos: locs.AyiaNapa, title: "アヤナパ (Ayia Napa)", desc: "透明度抜群のビーチ", mapUrl: "https://maps.google.com/?q=Ayia+Napa+Cyprus" },
+                    { pos: locs.Guaba, title: "GUABA Beach Bar", desc: "リマソルの人気ビーチクラブ", mapUrl: "https://maps.google.com/?q=Guaba+Beach+Bar+Limassol" },
+                    { pos: locs.Troodos, title: "トロドス山脈 (Troodos)", desc: "世界遺産聖堂群", mapUrl: "https://maps.google.com/?q=Troodos+Mountains+Cyprus" },
+                    { pos: locs.Kourion, title: "クーリオン遺跡 (Kourion)", desc: "地中海を望む野外劇場", mapUrl: "https://maps.google.com/?q=Kourion+Archaeological+Site+Limassol" },
+                    { pos: locs.Pompeii, title: "ポンペイ遺跡 (Pompeii)", desc: "古代ローマの都市遺跡", mapUrl: "https://maps.google.com/?q=Pompeii+Archaeological+Park+Naples" },
+                    { pos: locs.Stresa, title: "ストレザ (マッジョーレ湖)", desc: "アルプス麓の湖畔リゾート", mapUrl: "https://maps.google.com/?q=Stresa+Lake+Maggiore+Italy" }
+                ];
+
+                spots.forEach(s => {
+                    L.marker(s.pos, { icon: createIcon('fa-solid fa-location-dot', 'bg-brand-darkGold') })
+                        .bindPopup(`<strong class="text-brand-navy font-bold">${s.title}</strong><br><span class="text-xs text-slate-600">${s.desc}</span><br><a href="${s.mapUrl}" target="_blank" rel="noopener" class="text-[11px] text-brand-darkGold font-bold hover:underline mt-1 inline-block">Google Mapsで見る ➔</a>`)
+                        .addTo(map);
+                });
+
+                // Accommodation Hotel Markers with User-Specified Exact GPS Coordinates
+                const hotelsMap = [
+                    { pos: [34.67306189526019, 33.04461090046094], title: "🏨 City Centre Rooms (リマソル)", desc: "9/5 〜 9/10 (5泊)<br>Spyrou Araouzou 63", mapUrl: "https://maps.google.com/?q=Spyrou+Araouzou+63+Limassol+3036+Cyprus" },
+                    { pos: [40.62866683196167, 14.533997488414553], title: "🏨 B&B Villa Italia (アマルフィ/アジェーロラ)", desc: "9/11 〜 9/13 (2泊)<br>Via Pendola 18, Agerola", mapUrl: "https://maps.google.com/?q=Via+Pendola+18+80051+Agerola+Italy" },
+                    { pos: [40.884251160299414, 14.271620915344624], title: "🏨 Airport Capodichino Home By Pagnotta (ナポリ)", desc: "9/13 〜 9/14 (1泊)<br>Strada Comunale del Cassano 55", mapUrl: "https://maps.google.com/?q=Strada+Comunale+del+Cassano+55+Napoli+Italy" },
+                    { pos: [45.88344750814517, 8.54042322439633], title: "🏨 Hotel Elena (ストレザ/マッジョーレ湖)", desc: "9/14 〜 9/16 (2泊)<br>Piazza Luigi Cadorna 15", mapUrl: "https://maps.google.com/?q=Piazza+Luigi+Cadorna+15+Stresa+Italy" }
+                ];
+
+                hotelsMap.forEach(h => {
+                    L.marker(h.pos, { icon: createIcon('fa-solid fa-hotel', 'bg-rose-600') })
+                        .bindPopup(`<strong class="text-rose-700 font-bold">${h.title}</strong><br><span class="text-xs text-slate-600">${h.desc}</span><br><a href="${h.mapUrl}" target="_blank" rel="noopener" class="text-[11px] text-brand-darkGold font-bold hover:underline mt-1 inline-block">Google Mapsで見る ➔</a>`)
+                        .addTo(map);
+                });
+
+                // Rent-a-Car Location Marker
+                const rentalCar = {
+                    pos: [40.87361741682208, 14.281091335603234],
+                    title: "🚗 ナポリ レンタカー (Budget)",
+                    desc: "ナポリ国際空港<br>受取: 9/11 11:00 〜 返却: 9/14 09:00<br>確認番号: 746056902",
+                    mapUrl: "https://maps.google.com/?q=40.87361741682208,14.281091335603234"
+                };
+
+                L.marker(rentalCar.pos, { icon: createIcon('fa-solid fa-car', 'bg-indigo-600') })
+                    .bindPopup(`<strong class="text-indigo-800 font-bold">${rentalCar.title}</strong><br><span class="text-xs text-slate-600">${rentalCar.desc}</span><br><a href="${rentalCar.mapUrl}" target="_blank" rel="noopener" class="text-[11px] text-brand-darkGold font-bold hover:underline mt-1 inline-block">Google Mapsで見る ➔</a>`)
+                    .addTo(map);
+
+                setTimeout(() => {
+                    if (map) map.invalidateSize();
+                }, 200);
+            } catch(e) {
+                console.error("Map initialization error:", e);
+            }
+        }
+
+        function focusMap(target) {
+            document.querySelectorAll('.map-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-navy', 'text-white');
+                btn.classList.add('bg-white', 'text-brand-navy');
+            });
+            if (window.event && window.event.currentTarget) {
+                window.event.currentTarget.classList.remove('bg-white', 'text-brand-navy');
+                window.event.currentTarget.classList.add('bg-brand-navy', 'text-white');
+            }
+
+            if (!map) return;
+            if (target === 'world') map.flyTo([38.0, 20.0], 4, { duration: 1.5 });
+            else if (target === 'cyprus') map.flyTo([34.67306, 33.04461], 15, { duration: 1.5 });
+            else if (target === 'naples') map.flyTo([40.75, 14.38], 10, { duration: 1.5 });
+            else if (target === 'maggiore') map.flyTo([45.88345, 8.54042], 15, { duration: 1.5 });
+        }
+
+        function switchAiTab(tab) {
+            const tabs = ['chat', 'finder', 'audio'];
+            tabs.forEach(t => {
+                const el = document.getElementById('aiTab' + t.charAt(0).toUpperCase() + t.slice(1));
+                const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (t === tab) {
+                    if (el) el.classList.remove('hidden');
+                    if (btn) btn.className = "flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all bg-brand-gold text-slate-900";
+                } else {
+                    if (el) el.classList.add('hidden');
+                    if (btn) btn.className = "flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all bg-slate-700 text-slate-300 hover:text-white";
+                }
+            });
+        }
+
+        async function fetchGeminiText(prompt, systemInstruction = "", useSearch = false) {
+            const apiKey = window.GEMINI_API_KEY || "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const makePayload = (withSearch) => {
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }]
+                };
+                if (systemInstruction) {
+                    payload.systemInstruction = { parts: [{ text: systemInstruction }] };
+                }
+                if (withSearch) {
+                    payload.tools = [{ "google_search": {} }];
+                }
+                return payload;
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(makePayload(useSearch))
+                });
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                return await response.json();
+            } catch (firstErr) {
+                if (useSearch) {
+                    const fallbackRes = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(makePayload(false))
+                    });
+                    if (!fallbackRes.ok) throw new Error(`HTTP Error: ${fallbackRes.status}`);
+                    return await fallbackRes.json();
+                }
+                throw firstErr;
+            }
+        }
+
+        async function handleChatSubmit() {
+            const inputEl = document.getElementById('chatInput');
+            if (!inputEl) return;
+            const userMsg = inputEl.value.trim();
+            if (!userMsg) return;
+
+            inputEl.value = '';
+            appendChatMessage('user', userMsg);
+
+            const sendBtn = document.getElementById('chatSendBtn');
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i><span>回答中...</span>';
+            }
+
+            const systemPrompt = `あなたはキプロス（リマソル、アヤナパ、トロドス山脈）およびイタリア（ナポリ、アマルフィ、マッジョーレ湖・ストレザ）の高級トラベルガイド専属AIコンシェルジュです。
+旅行者はKourtis, Savvas Yuei様とHarima, Anju様で、2026年9月4日〜9月18日に訪れます。
+丁寧でわかりやすい日本語で回答し、箇条書きを活用して読みやすく説明してください。`;
+
+            try {
+                const res = await fetchGeminiText(userMsg, systemPrompt, true);
+                const candidate = res.candidates?.[0];
+                const replyText = candidate?.content?.parts?.[0]?.text || "申し訳ありません。回答を取得できませんでした。";
+
+                let sources = [];
+                const attributions = candidate?.groundingMetadata?.groundingAttributions;
+                if (attributions && Array.isArray(attributions)) {
+                    sources = attributions
+                        .map(a => ({ uri: a.web?.uri, title: a.web?.title }))
+                        .filter(s => s.uri && s.title);
+                }
+
+                appendChatMessage('ai', replyText, sources);
+            } catch (err) {
+                console.error("Gemini API Error:", err);
+                appendChatMessage('ai', "通信エラーが発生しました。スクリプト内のGEMINI_API_KEYの設定をご確認ください。");
+            } finally {
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = '<span>送信</span><i class="fa-solid fa-paper-plane"></i>';
+                }
+            }
+        }
+
+        function sendQuickPrompt(text) {
+            const inputEl = document.getElementById('chatInput');
+            if (inputEl) {
+                inputEl.value = text;
+                handleChatSubmit();
+            }
+        }
+
+        function appendChatMessage(role, text, sources = []) {
+            const container = document.getElementById('chatContainer');
+            if (!container) return;
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = role === 'user' ? "flex items-start justify-end space-x-3" : "flex items-start space-x-3";
+
+            const formattedText = text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            let sourcesHtml = '';
+            if (sources && sources.length > 0) {
+                sourcesHtml = `<div class="mt-2 pt-2 border-t border-slate-700 text-[10px] text-slate-400">
+                    <strong>参考情報元:</strong>
+                    <ul class="list-disc list-inside mt-1 space-y-0.5">
+                        ${sources.slice(0, 3).map(s => `<li><a href="${s.uri}" target="_blank" rel="noopener" class="underline hover:text-brand-gold">${s.title}</a></li>`).join('')}
+                    </ul>
+                </div>`;
+            }
+
+            if (role === 'user') {
+                msgDiv.innerHTML = `
+                    <div class="bg-brand-navy border border-brand-gold/40 text-white text-xs sm:text-sm p-3.5 rounded-2xl rounded-tr-none max-w-2xl leading-relaxed">
+                        ${formattedText}
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center font-bold text-xs shrink-0">YOU</div>
+                `;
+            } else {
+                msgDiv.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-brand-gold text-slate-900 flex items-center justify-center font-bold text-xs shrink-0">AI</div>
+                    <div class="bg-slate-800 text-slate-200 text-xs sm:text-sm p-3.5 rounded-2xl rounded-tl-none border border-slate-700 max-w-2xl leading-relaxed">
+                        ${formattedText}
+                        ${sourcesHtml}
+                    </div>
+                `;
+            }
+
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function generateRecommendations() {
+            const areaSelect = document.getElementById('finderArea');
+            const typeSelect = document.getElementById('finderType');
+            const resultEl = document.getElementById('finderResult');
+            const finderBtn = document.getElementById('finderBtn');
+
+            if (!areaSelect || !typeSelect || !resultEl || !finderBtn) return;
+
+            const area = areaSelect.value;
+            const type = typeSelect.value;
+
+            finderBtn.disabled = true;
+            finderBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-2"></i>AI検索中...';
+            resultEl.innerHTML = '<div class="text-center py-6 text-brand-gold"><i class="fa-solid fa-sparkles animate-pulse text-2xl"></i><p class="mt-2 text-xs">Google検索からリアルタイム情報を取得・分析しています...</p></div>';
+
+            const prompt = `${area}における「${type}」のおすすめを3つ厳選して教えてください。
+各スポットについて、店舗/場所名、概要・魅力、看板メニューまたは見どころ、予算目安を簡潔にまとめて提出してください。`;
+
+            const systemPrompt = "Google検索を元に、最新で評判の高い正確な旅行情報を提案するプロのAIコンシェルジュとして回答してください。";
+
+            try {
+                const res = await fetchGeminiText(prompt, systemPrompt, true);
+                const candidate = res.candidates?.[0];
+                const text = candidate?.content?.parts?.[0]?.text || "検索結果を取得できませんでした。";
+
+                const formatted = text
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/\n/g, '<br>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-brand-gold font-bold">$1</strong>');
+                resultEl.innerHTML = `<div class="prose text-xs sm:text-sm text-slate-200 leading-relaxed w-full">${formatted}</div>`;
+            } catch (err) {
+                console.error("Finder API Error:", err);
+                resultEl.innerHTML = '<p class="text-amber-400 text-xs">検索処理中にエラーが発生しました。接続をご確認ください。</p>';
+            } finally {
+                finderBtn.disabled = false;
+                finderBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass-location"></i><span>AIで最新スポット・お店を検索・提案</span>';
+            }
+        }
+
+        async function generateAudioGuide() {
+            const btn = document.getElementById('audioPlayBtn');
+            const status = document.getElementById('audioStatus');
+            const player = document.getElementById('audioPlayer');
+
+            if (!btn || !status || !player) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i><span>音声生成中...</span>';
+            status.textContent = "Gemini 2.5 TTSモデルで音声ファイルを生成しています...";
+
+            const scriptPrompt = "Say cheerfully in Japanese: キプロスとイタリアを巡るグランドツアー2026へようこそ！地中海に浮かぶキプロス島でのリゾートと世界遺産、南イタリア・アマルフィ海岸の絶景ドライブ、そして北イタリア・マッジョーレ湖での優雅な滞在をお楽しみください。";
+
+            const apiKey = window.GEMINI_API_KEY || "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: scriptPrompt }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Aoede" }
+                        }
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const base64Audio = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (base64Audio && mimeType) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+                    
+                    const binaryString = atob(base64Audio);
+                    const len = binaryString.length;
+                    const bytes = new Uint8Array(len);
+                    for (let i = 0; i < len; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    
+                    const pcm16 = new Int16Array(bytes.buffer);
+                    const wavBlob = pcm16ToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+
+                    player.src = audioUrl;
+                    player.classList.remove('hidden');
+                    player.play();
+                    status.textContent = "音声再生中...";
+                } else {
+                    throw new Error("Invalid audio response format");
+                }
+            } catch (err) {
+                console.error("TTS API Error:", err);
+                status.textContent = "音声生成エラーが発生しました。";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-play"></i><span>AI 音声ガイダンスを生成・再生</span>';
+            }
+        }
+
+        function pcm16ToWav(pcmData, sampleRate) {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+            const blockAlign = numChannels * (bitsPerSample / 8);
+            const dataSize = pcmData.length * 2;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            const writeString = (v, offset, str) => {
+                for (let i = 0; i < str.length; i++) v.setUint8(offset + i, str.charCodeAt(i));
+            };
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitsPerSample, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            for (let i = 0; i < pcmData.length; i++) {
+                view.setInt16(44 + i * 2, pcmData[i], true);
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        // Safe Load Event Execution
+        document.addEventListener('DOMContentLoaded', () => {
+            syncChecklistFromCards();
+            if (window.renderAllDynamicSections) {
+                window.renderAllDynamicSections();
+            }
+            setTimeout(() => {
+                initMap();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
